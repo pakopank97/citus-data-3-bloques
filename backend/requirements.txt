@@ -1,0 +1,12 @@
+Flask
+flask-cors
+psycopg2-binary
+SQLAlchemy
+alembic
+gunicorn
+python-dotenv
+requests
+flask-jwt-extended
+flask-swagger-ui
+marshmallow
+marshmallow-sqlalchemy  

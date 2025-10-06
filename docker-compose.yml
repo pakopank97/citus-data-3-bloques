@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  citus_coordinator:
+    image: citusdata/citus:12.1
+    container_name: citus_coordinator
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=demo
+    networks:
+      - citus_net
+    command: >
+      bash -c "
+      docker-entrypoint.sh postgres &
+      sleep 10 &&
+      psql -U postgres -d demo -c \"CREATE EXTENSION IF NOT EXISTS citus;\"
+      "
+
+  citus_worker1:
+    image: citusdata/citus:12.1
+    container_name: citus_worker1
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - citus_net
+
+  citus_worker2:
+    image: citusdata/citus:12.1
+    container_name: citus_worker2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - citus_net
+
+  citus_worker3:
+    image: citusdata/citus:12.1
+    container_name: citus_worker3
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - citus_net
+
+  backend:
+    build: ./backend
+    container_name: flask_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_HOST=citus_coordinator
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=demo
+    depends_on:
+      - citus_coordinator
+    networks:
+      - citus_net
+
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - citus_net
+
+networks:
+  citus_net:
+    driver: bridge
